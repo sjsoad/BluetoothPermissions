@@ -10,16 +10,10 @@ import UIKit
 import CoreBluetooth
 import SKServicePermissions
 
-open class BluetoothPermissions: NSObject {
+open class BluetoothPermissions: NSObject, ServicePermissions {
 
     private var bluetoothManager: CBPeripheralManager?
     private var requestPermissionsHandler: ((PermissionsState) -> Void)?
-    
-}
-
-// MARK: - ServicePermissions -
-
-extension BluetoothPermissions: ServicePermissions {
     
     public typealias PermissionsState = (authStatus: CBPeripheralManagerAuthorizationStatus, state: CBManagerState)
     

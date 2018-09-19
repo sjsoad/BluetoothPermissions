@@ -8,14 +8,20 @@
 
 import UIKit
 import CoreBluetooth
-import SKServicePermissions
 
-open class BluetoothPermissions: NSObject, ServicePermissions {
+public protocol BluetoothPermissions {
+    
+    typealias PermissionsState = (authStatus: CBPeripheralManagerAuthorizationStatus, state: CBManagerState)
+    
+    func requestPermissions(handler: @escaping (PermissionsState) -> Void)
+    func permissionsState() -> PermissionsState
+    
+}
+
+open class DefaultBluetoothPermissions: NSObject, BluetoothPermissions {
 
     private var bluetoothManager: CBPeripheralManager?
     private var requestPermissionsHandler: ((PermissionsState) -> Void)?
-    
-    public typealias PermissionsState = (authStatus: CBPeripheralManagerAuthorizationStatus, state: CBManagerState)
     
     public func requestPermissions(handler: @escaping (PermissionsState) -> Void) {
         requestPermissionsHandler = handler
@@ -30,10 +36,13 @@ open class BluetoothPermissions: NSObject, ServicePermissions {
 
 // MARK: - CBCentralManagerDelegate -
 
-extension BluetoothPermissions: CBPeripheralManagerDelegate {
+extension DefaultBluetoothPermissions: CBPeripheralManagerDelegate {
     
     public func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
-        requestPermissionsHandler?(permissionsState())
+        DispatchQueue.main.async { [weak self] in
+            guard let `self` = self else { return }
+            self.requestPermissionsHandler?(self.permissionsState())
+        }
     }
     
 }
